@@ -136,6 +136,8 @@ func (aggregator *HealthAggregator) Summary() *HealthReport {
 	aggregator.mutex.Lock()
 	defer aggregator.mutex.Unlock()
 
+	log.Info("-- starting health summary")
+
 	var failedLivenessChecks []*reporterState
 	var failedReadinessChecks []*reporterState
 
@@ -144,24 +146,33 @@ func (aggregator *HealthAggregator) Summary() *HealthReport {
 
 	// Now for each reporter...
 	for _, reporter := range aggregator.reporters {
+		log.Info("-- checking reporter: %s", reporter.name)
+
 		// Reset Live to false if that reporter is registered to report liveness and hasn't
 		// recently said that it is live.
 		stillLive := reporter.latest.Live && !reporter.TimedOut()
+		log.Infof("-- stillLive=%t. reporter.latest.Live=%t, reporter.TimedOut=%t", stillLive, reporter.latest.Live, reporter.timeout)
+
 		if summary.Live && reporter.reports.Live && !stillLive {
+			log.Info("-- setting summary.Live false")
 			summary.Live = false
 		}
 
 		// Reset Ready to false if that reporter is registered to report readiness and
 		// hasn't recently said that it is ready.
 		stillReady := reporter.latest.Ready && !reporter.TimedOut()
+		log.Infof("-- stillReady=%t. reporter.latest.Ready=%t, reporter.TimedOut=%t", stillReady, reporter.latest.Ready, reporter.timeout)
 		if summary.Ready && reporter.reports.Ready && !stillReady {
+			log.Info("-- setting summary.Ready false")
 			summary.Ready = false
 		}
 
 		if reporter.reports.Live && !stillLive {
+			log.Infof("-- appending failed liveness check: %s", reporter.name)
 			failedLivenessChecks = append(failedLivenessChecks, reporter)
 		}
 		if reporter.reports.Ready && !stillReady {
+			log.Infof("-- appending failed readiness check: %s", reporter.name)
 			failedReadinessChecks = append(failedReadinessChecks, reporter)
 		}
 		if reporter.reports.Live && reporter.reports.Ready && stillLive && stillReady {
@@ -171,6 +182,8 @@ func (aggregator *HealthAggregator) Summary() *HealthReport {
 			}).Debug("Reporter is healthy")
 		}
 	}
+
+	log.Infof("-- done with loop. last report live = %s, ready = %s", aggregator.lastReport.Live, aggregator.lastReport.Ready)
 
 	// Summary status has changed so update previous status and log.
 	if summary.Live != aggregator.lastReport.Live || summary.Ready != aggregator.lastReport.Ready {
