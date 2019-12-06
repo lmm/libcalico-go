@@ -160,7 +160,7 @@ func (st *SyncerTester) ExpectStatusUpdate(status api.SyncStatus) {
 		defer st.lock.Unlock()
 		return st.status
 	}
-	Eventually(cs, 6*time.Second, time.Millisecond).Should(Equal(status))
+	Eventually(cs, 10*time.Second, time.Millisecond).Should(Equal(status))
 	Consistently(cs).Should(Equal(status))
 
 	log.Infof("Status is at expected status: %s", status)
@@ -191,7 +191,7 @@ func (st *SyncerTester) ExpectStatusUnchanged() {
 		defer st.lock.Unlock()
 		return st.statusChanged
 	}
-	Eventually(sc, 6*time.Second, time.Millisecond).Should(BeFalse())
+	Eventually(sc, 10*time.Second, time.Millisecond).Should(BeFalse())
 	Consistently(sc).Should(BeFalse(), "Status changed unexpectedly")
 }
 

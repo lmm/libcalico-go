@@ -50,8 +50,9 @@ type watcherCache struct {
 var (
 	ListRetryInterval = 1000 * time.Millisecond
 	WatchPollInterval = 5000 * time.Millisecond
-	ErrorThreshold    = 15
 )
+
+const ErrorThreshold = 15
 
 // cacheEntry is an entry in our cache.  It groups the a key with the last known
 // revision that we processed.  We store the revision so that we can determine
