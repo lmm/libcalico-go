@@ -16,6 +16,10 @@ package numorstring
 
 import (
 	"encoding/json"
+	spec "github.com/go-openapi/spec"
+	openapi "k8s.io/kube-openapi/pkg/common"
+
+	"log"
 	"strconv"
 )
 
@@ -31,7 +35,9 @@ type Uint8OrString struct {
 
 // UnmarshalJSON implements the json.Unmarshaller interface.
 func (i *Uint8OrString) UnmarshalJSON(b []byte) error {
+	log.Println("sigh")
 	if b[0] == '"' {
+		log.Println("unmarshalling string?")
 		var s string
 		if err := json.Unmarshal(b, &s); err != nil {
 			return err
@@ -48,6 +54,7 @@ func (i *Uint8OrString) UnmarshalJSON(b []byte) error {
 
 		return nil
 	}
+	log.Println("unmarshalling int?")
 	i.Type = NumOrStringNum
 	return json.Unmarshal(b, &i.NumVal)
 }
@@ -77,4 +84,15 @@ func (i Uint8OrString) NumValue() (uint8, error) {
 		return uint8(num), err
 	}
 	return i.NumVal, nil
+}
+
+func (_ Uint8OrString) OpenAPIDefinition() openapi.OpenAPIDefinition {
+	return openapi.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type:   []string{"string"},
+				Format: "int-or-string",
+			},
+		},
+	}
 }

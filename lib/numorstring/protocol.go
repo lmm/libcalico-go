@@ -14,7 +14,12 @@
 
 package numorstring
 
-import "strings"
+import (
+	spec "github.com/go-openapi/spec"
+	openapi "k8s.io/kube-openapi/pkg/common"
+
+	"strings"
+)
 
 const (
 	ProtocolUDP     = "UDP"
@@ -131,5 +136,15 @@ func (p Protocol) SupportsPorts() bool {
 			return true
 		}
 		return false
+	}
+}
+func (_ Protocol) OpenAPIDefinition() openapi.OpenAPIDefinition {
+	return openapi.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type:   []string{"string"},
+				Format: "int-or-string",
+			},
+		},
 	}
 }
